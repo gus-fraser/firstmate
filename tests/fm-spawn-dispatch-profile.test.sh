@@ -958,6 +958,7 @@ test_claude_account_refusals_happen_before_endpoint_or_metadata() {
 none^--harness claude^claude-second^config/claude-accounts does not exist
 ok^--harness claude^claude-third^claude account 'claude-third' is unknown
 ok^--harness claude^Claude-Second^is not a valid name
+ok^--harness claude^default^'default' is reserved for the default Claude config directory
 relative^--harness claude^claude-second^maps to relative directory 'claude-second'
 missing^--harness claude^claude-second^which is not an existing directory
 ok^--harness codex^claude-second^needs the canonical claude harness, not 'codex'

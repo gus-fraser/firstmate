@@ -28,7 +28,7 @@
 #   first in the private launch-brief overlay, including the exact task-owned
 #   steering inbox. This never rewrites a project's instruction files or a
 #   secondmate's charter.
-#        fm-spawn.sh <task-id> --relaunch [--harness <name>] [--model <name>] [--effort <level>]
+#        fm-spawn.sh <task-id> --relaunch [--harness <name>] [--model <name>] [--effort <level>] [--account <name>|default]
 #   --relaunch launches a replacement agent for an EXISTING task into that
 #   task's own recorded worktree, reusing its recorded endpoint when that
 #   endpoint still exists, instead of creating either from scratch. It is
@@ -39,8 +39,8 @@
 #   backend, kind, project or home, worktree, endpoint - comes from the task's
 #   validated state/<id>.meta, so --backend, --scout, --secondmate, a project
 #   positional, and batch pairs are all refused alongside it; only harness,
-#   model, and effort may change, which is what makes a harness switch one
-#   ordinary relaunch. It refuses unless the recorded endpoint is positively
+#   model, effort, and Claude account may change, which is what makes a harness
+#   switch one ordinary relaunch. It refuses unless the recorded endpoint is positively
 #   agent-free on a backend with a recovery-grade agent-state classifier (tmux
 #   or herdr), and clears the previous harness's per-task wiring before arming
 #   the new incarnation. Two verdicts are agent-free: a `dead` endpoint is
@@ -77,10 +77,12 @@
 #   --secondmate spawns and raw launch commands; an unknown name, a malformed
 #   file, or a relative or missing directory refuses before any endpoint,
 #   worktree, or record exists. The name is recorded as account= in task meta
-#   only when set, and a --relaunch that stays on claude reuses the recorded
-#   account (re-resolving its directory) rather than accepting a new one; a
-#   relaunch onto another harness drops it. Absent --account launches exactly
-#   as before.
+#   only when set. A --relaunch that stays on claude without --account reuses
+#   the recorded account (re-resolving its directory), and one onto another
+#   harness drops it; a --relaunch may instead name --account <name> to move a
+#   claude task onto another account, or --account default to clear it back to
+#   the default store, under the same refusals. Absent --account launches
+#   exactly as before.
 #   --backend <name> is the explicit runtime session-provider backend for this
 #   exact task only (docs/configuration.md "Runtime backend" owns when that flag
 #   is authorized). Without it, the script resolves FM_BACKEND, then
@@ -792,10 +794,6 @@ if [ "$RELAUNCH" -eq 1 ]; then
   }
   [ "$YOLO_SET" -eq 0 ] || {
     echo "error: --relaunch reuses the task's recorded yolo posture; --yolo cannot override it" >&2
-    exit 1
-  }
-  [ "$ACCOUNT_SET" -eq 0 ] || {
-    echo "error: --relaunch reuses the task's recorded Claude account; --account cannot override it" >&2
     exit 1
   }
 else
@@ -2276,15 +2274,23 @@ if [ "$EFFORT" = ultra ]; then
   }
 fi
 # Claude account (--account, header above). A relaunch that stays on claude
-# reuses the account recorded for the task; one onto another harness drops it,
-# exactly as a harness change resets model and effort. Resolved here, after the
-# harness and before any worktree or endpoint exists, so every refusal leaves
-# nothing behind.
+# reuses the account recorded for the task unless it names one, and `default`
+# clears it; one onto another harness drops it, exactly as a harness change
+# resets model and effort. Resolved here, after the harness and before any
+# worktree or endpoint exists, so every refusal leaves nothing behind.
 CLAUDE_ACCOUNT_DIR=
-if [ "$RELAUNCH" -eq 1 ] && [ "$HARNESS" = claude ] && [ "$RAW_LAUNCH" = 0 ]; then
-  ACCOUNT=$(fm_meta_get "$RELAUNCH_META" account)
+if [ "$RELAUNCH" -eq 1 ]; then
+  if [ "$ACCOUNT_SET" -eq 1 ]; then
+    [ "$ACCOUNT" != default ] || ACCOUNT=
+  elif [ "$HARNESS" = claude ] && [ "$RAW_LAUNCH" = 0 ]; then
+    ACCOUNT=$(fm_meta_get "$RELAUNCH_META" account)
+  fi
 fi
 if [ -n "$ACCOUNT" ]; then
+  if [ "$KIND" = secondmate ]; then
+    echo "error: --account applies only to crewmate and scout tasks, not secondmate $ID" >&2
+    exit 1
+  fi
   if [ "$HARNESS" != claude ] || [ "$RAW_LAUNCH" != 0 ]; then
     echo "error: --account $ACCOUNT selects a Claude account and needs the canonical claude harness, not '${ARG3:-$HARNESS}'" >&2
     exit 1

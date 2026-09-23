@@ -11,13 +11,15 @@
 # File format: one "<name> <absolute-directory>" pair per line; blank lines and
 # lines whose first non-blank character is # are ignored. The name is the
 # first whitespace-delimited word and must match FM_CLAUDE_ACCOUNT_NAME_RE; the
+# name `default` is reserved for the Claude config directory a worker with no
+# account inherits, so a relaunch can name it to clear the account axis. The
 # directory is the rest of the line with surrounding whitespace trimmed, so it
 # may contain spaces. `~` and variables are not expanded.
 #
 # fm_claude_account_resolve <config-dir> <name>
 #   On success sets FM_CLAUDE_ACCOUNT_DIR to the mapped directory and returns 0.
 #   On any refusal sets FM_CLAUDE_ACCOUNT_ERROR to one reason line and returns
-#   1: an invalid name, an absent or unreadable file, a malformed or duplicate
+#   1: an invalid or reserved name, an absent or unreadable file, a malformed or duplicate
 #   entry anywhere in the file, an unknown name, a relative directory, or a
 #   directory that does not exist. The whole file is validated on every call,
 #   so a broken entry refuses every account rather than only its own.
@@ -30,6 +32,10 @@ fm_claude_account_resolve() { # <config-dir> <name>
   FM_CLAUDE_ACCOUNT_ERROR=
   if ! [[ $name =~ $FM_CLAUDE_ACCOUNT_NAME_RE ]]; then
     FM_CLAUDE_ACCOUNT_ERROR="claude account '$name' is not a valid name (lowercase letters, digits, and single hyphens)"
+    return 1
+  fi
+  if [ "$name" = default ]; then
+    FM_CLAUDE_ACCOUNT_ERROR="claude account name 'default' is reserved for the default Claude config directory; omit the account to use it"
     return 1
   fi
   if [ ! -e "$file" ] && [ ! -L "$file" ]; then
@@ -52,6 +58,7 @@ fm_claude_account_resolve() { # <config-dir> <name>
       dir = substr(line, length(key) + 1)
       sub(/^[[:space:]]+/, "", dir)
       if (key !~ re) reason = "invalid account name " key
+      else if (key == "default") reason = "account name default is reserved for the default Claude config directory"
       else if (dir == "") reason = "account " key " has no directory"
       else if (key in seen) reason = "duplicate account " key
       if (reason != "") { printf "bad\tconfig/claude-accounts line %d: %s\n", NR, reason; bad = 1; exit }

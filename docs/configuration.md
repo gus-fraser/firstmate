@@ -395,13 +395,15 @@ Each non-blank line that does not start with `#` holds one account name, whitesp
 claude-second /Users/example/.claude-second
 ```
 
-A name uses lowercase letters, digits, and single hyphens; the directory is the rest of the line, may contain spaces, and is never `~`- or variable-expanded.
+A name uses lowercase letters, digits, and single hyphens, and `default` is reserved for the default account; the directory is the rest of the line, may contain spaces, and is never `~`- or variable-expanded.
 The default account needs no entry: a worker with no account runs exactly as before, inheriting the Claude config directory Firstmate itself runs under (the `CLAUDE_CONFIG_DIR` Firstmate was started with, else Claude's own default).
 A [crew dispatch profile](#crew-dispatch-profiles-configcrew-dispatchjson) selects an account with its optional `account` field, and Firstmate passes it to `bin/fm-spawn.sh` as `--account <name>`.
 That spawn launches the worker with `CLAUDE_CONFIG_DIR` set to the account's directory in place of Firstmate's own, and pre-registers workspace trust in that account's store, so the worker uses that subscription's credentials and settings.
 The account is valid only with the canonical `claude` harness on crewmate and scout spawns; a secondmate spawn, a raw launch command, or another harness refuses it.
 An unknown name, an absent or malformed file, a duplicate entry, or a relative or missing directory refuses the spawn before any endpoint, local copy, or task record exists.
 The chosen name is recorded as `account=` in the task record, and a control-plane relaunch that stays on Claude reuses it, re-reading its directory from this file; a relaunch onto another harness drops it.
+`bin/fm-control.sh <id> relaunch --account <name>` instead moves a Claude task onto another account, and `--account default` returns it to the default account, for example after the recorded subscription reaches its usage limit; the replacement's record carries the new account, or none.
+A relaunch account passes the same refusals as a spawn, and an unknown name, an absent or malformed file, a relative or missing directory, a non-Claude target harness, or a secondmate task refuses before the running agent is stopped.
 Quota evidence for an account comes only from a quota-axi row whose `accountKey` equals the account name; the [account-matching contract](../.agents/skills/quota-array-dispatch/SKILL.md#1-eligibility) owns that binding.
 The file is inherited into secondmate homes under the [`secondmate-provisioning`](../.agents/skills/secondmate-provisioning/SKILL.md) inherited-local-material contract, because the inherited dispatch profiles name its accounts; its directories are machine paths, so a remote secondmate whose host lacks one refuses that account rather than falling back to another.
 
@@ -558,6 +560,8 @@ When on and at least one rule exists, the tool sends the project name and the wh
 An absent rules file, a default-only file, or `rules: []` returns the non-clear reason `no rules to match` without a model or quota request, leaving firstmate's existing routing in control; an existing but unreadable or malformed rules file, including a broken symlink, remains an actionable exit 2 configuration error.
 Everything after the answer runs in code: the confidence floor, the matched rule's `approval` and `floor`, each candidate's `provider` and `floor`, every applicable account-wide and model/product row from one `quota-axi --json` snapshot, and the numeric `spendPriority` argmax over candidates using each candidate's limiting row.
 The [shared quota library](../bin/fm-quota-axi-lib.sh) accepts schema 5 and schema 6 and implements the [account-matching contract](../.agents/skills/quota-array-dispatch/SKILL.md#1-eligibility).
+A profile that names a non-default [Claude account](#claude-accounts-configclaude-accounts) is measured only by a schema 6 row whose `accountKey` equals that name, and the resolver never borrows the default account's row for it.
+The current single-account quota-axi snapshot has no such row, so that candidate stays unmeasured and is never ranked: in a profile array the measured default-account candidate wins whenever it is rankable, and a rule whose only profile names the account escalates with no rankable candidate, which returns the task to firstmate's manual intake.
 An expanded provider with no matching account row leaves the candidate eligible but unranked.
 Known applicable rows from a provider with partial quota semantics remain rankable; rows whose own status is not known remain unrankable.
 Any applicable `exhausted_now` row or known zero bound makes that candidate ineligible, and a known profile-floor shortfall does the same before unrelated quota uncertainty is considered.
