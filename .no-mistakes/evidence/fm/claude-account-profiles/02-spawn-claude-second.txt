@@ -1,0 +1,57 @@
+## Scenario: spawn a claude worker with --account claude-second (live Herdr lab fm-lab-acct-select-21198-10115)
+firstmate ambient CLAUDE_CONFIG_DIR during spawn: $SCRATCH/claude-ambient
+config/claude-accounts:
+  # Claude accounts (scratch)
+  claude-second $SCRATCH/claude-second
+
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-second
+warning: $SCRATCH/home/data/acct1/launch-brief.md records no delivery contract line (scaffolded before ship briefs recorded one); launching on the explicit --mode local-only - confirm its definition of done matches
+notice: acct1 ships mode=local-only while the standing posture for proj is no-mistakes - less rigor than the captain's standing posture; proceed only on a current explicit captain instruction or an intake judgment you can state
+spawned acct1 harness=claude kind=ship mode=local-only yolo=off window=fm-lab-acct-select-21198-10115:w1:p2 worktree=/Users/gusfraser/.treehouse/proj-5e092b/1/proj
+exit=0
+
+## state/acct1.meta (harness/model/effort/account lines)
+worktree=/Users/gusfraser/.treehouse/proj-5e092b/1/proj
+harness=claude
+model=default
+effort=default
+account=claude-second
+backend=herdr
+herdr_pane_id=w1:p2
+
+## live worker process in pane w1:p2: pid 43713 (claude)
+CLAUDE_CONFIG_DIR=$SCRATCH/claude-second
+
+## workspace trust registration
+claude-second store ($SCRATCH/claude-second/.claude.json) projects:
+{"path":"/Users/gusfraser/.treehouse/proj-5e092b/1/proj","hasTrustDialogAccepted":true}
+{"path":"$SCRATCH/proj","hasTrustDialogAccepted":true}
+ambient store ($SCRATCH/claude-ambient/.claude.json) projects:
+[]
+
+## pane viewport (herdr pane read --source visible)
+gusfraser@Anguss-MacBook-Pro proj % treehouse get
+🌳 Setting up worktree...
+🌳 Entered worktree at ~/.treehouse/proj-5e092b/1/proj. Type 'exit' to return.
+gusfraser@Anguss-MacBook-Pro proj % export GOTMPDIR=/tmp/fm-acct1/gotmp
+gusfraser@Anguss-MacBook-Pro proj % export COMPACT_ADVISER_DISABLE=1
+gusfraser@Anguss-MacBook-Pro proj % export FM_TASK_ID=acct1
+gusfraser@Anguss-MacBook-Pro proj % . '/tmp/fm-acct1+efb709890ea183453e1ed27c440b95b69153004a3fc4e1303be2c1e6b17662ef/la
+unch.s1790180875.40887.19054.sh'
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  WARNING: Claude Code running in Bypass Permissions mode
+
+  In Bypass Permissions mode, Claude Code will not ask for your approval before running potentially dangerous
+  commands.
+  This mode should only be used in a sandboxed container/VM that has restricted internet access and can easily be
+  restored if damaged.
+
+  By proceeding, you accept all responsibility for actions taken while running in Bypass Permissions mode.
+
+  https://code.claude.com/docs/en/security
+
+  ❯ No, exit
+    Yes, I accept
+
+  Enter to confirm · Esc to cancel

@@ -1,0 +1,41 @@
+## Round-2: spawn a claude worker on claude-second and one with no account (live lab fm-lab-acct-r2-25675-6330)
+firstmate ambient CLAUDE_CONFIG_DIR during spawn: $SCRATCH/claude-ambient
+config/claude-accounts:
+  # Claude accounts (scratch)
+  claude-second $SCRATCH/claude-second
+
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-second
+spawned acct1 harness=claude kind=ship mode=local-only yolo=off window=fm-lab-acct-r2-25675-6330:w3:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/1/proj
+exit=0
+
+$ fm-spawn.sh acct2 <proj> --mode local-only --yolo off --backend herdr --harness claude 
+spawned acct2 harness=claude kind=ship mode=local-only yolo=off window=fm-lab-acct-r2-25675-6330:w4:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/2/proj
+exit=0
+
+## state/acct1.meta (harness/account lines)
+harness=claude
+model=default
+effort=default
+account=claude-second
+backend=herdr
+herdr_pane_id=w3:p2
+## live claude worker process env for acct1 (cwd = task worktree)
+pid 4038: CLAUDE_CONFIG_DIR=$SCRATCH/claude-second
+
+## state/acct2.meta (harness/account lines)
+harness=claude
+model=default
+effort=default
+backend=herdr
+herdr_pane_id=w4:p2
+(no account= line)
+## live claude worker process env for acct2 (cwd = task worktree)
+pid 7331: CLAUDE_CONFIG_DIR=$SCRATCH/claude-ambient
+
+## workspace-trust registration per store
+claude-second/.claude.json projects:
+{"path":"/Users/gusfraser/.treehouse/proj-2b00f3/1/proj","hasTrustDialogAccepted":true}
+{"path":"$SCRATCH/proj","hasTrustDialogAccepted":true}
+claude-ambient/.claude.json projects:
+{"path":"/Users/gusfraser/.treehouse/proj-2b00f3/2/proj","hasTrustDialogAccepted":true}
+{"path":"$SCRATCH/proj","hasTrustDialogAccepted":true}

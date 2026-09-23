@@ -1,0 +1,26 @@
+## Documented precondition: a named store that has not accepted Bypass Permissions mode (live lab fm-lab-acct-r2-25675-6330)
+claude-third store: signed-in-shaped .claude.json, NO settings.json skipDangerousModePermissionPrompt
+$ fm-spawn.sh acct3 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-third
+spawned acct3 harness=claude kind=ship mode=local-only yolo=off window=fm-lab-acct-r2-25675-6330:w5:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/3/proj
+exit=0
+worker env: pid 59083: CLAUDE_CONFIG_DIR=$SCRATCH/claude-third
+## acct3 pane viewport
+gusfraser@Anguss-MacBook-Pro proj % treehouse get
+🌳 Setting up worktree...
+🌳 Entered worktree at ~/.treehouse/proj-2b00f3/3/proj. Type 'exit' to return.
+gusfraser@Anguss-MacBook-Pro proj % export GOTMPDIR=/tmp/fm-acct3/gotmp
+gusfraser@Anguss-MacBook-Pro proj % export COMPACT_ADVISER_DISABLE=1
+gusfraser@Anguss-MacBook-Pro proj % export FM_TASK_ID=acct3
+gusfraser@Anguss-MacBook-Pro proj % . '/tmp/fm-acct3+0fe8406c3ad6c306e41badc8f342f66f0d8207fddc482c8251e63de071b16538/la
+unch.s1790182614.54869.12075.sh'
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  WARNING: Claude Code running in Bypass Permissions mode
+  In Bypass Permissions mode, Claude Code will not ask for your approval before running potentially dangerous
+  commands.
+  This mode should only be used in a sandboxed container/VM that has restricted internet access and can easily be
+  restored if damaged.
+  By proceeding, you accept all responsibility for actions taken while running in Bypass Permissions mode.
+  https://code.claude.com/docs/en/security
+  ❯ No, exit
+    Yes, I accept
+  Enter to confirm · Esc to cancel

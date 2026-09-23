@@ -1,0 +1,39 @@
+## Round-2 spawn refusals (live lab fm-lab-acct-r2-25675-6330, commit 055fed0)
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-third
+error: claude account 'claude-third' is unknown: config/claude-accounts has no entry for it
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness codex --account claude-second
+error: --account claude-second selects a Claude account and needs the canonical claude harness, not 'codex'
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account default
+error: claude account name 'default' is reserved for the default Claude config directory; omit the account to use it
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account Claude-Second
+error: claude account 'Claude-Second' is not a valid name (lowercase letters, digits, and single hyphens)
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+
+(config/claude-accounts: 'claude-second relative/dir')
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-second
+error: claude account 'claude-second' maps to relative directory 'relative/dir'; config/claude-accounts needs an absolute path
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+
+(config/claude-accounts: claude-second -> missing dir)
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-second
+error: claude account 'claude-second' maps to '$SCRATCH/not-signed-in', which is not an existing directory; sign that account in under it first
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+
+(config/claude-accounts: duplicate claude-second entry)
+$ fm-spawn.sh acct1 <proj> --mode local-only --yolo off --backend herdr --harness claude --account claude-second
+error: config/claude-accounts line 2: duplicate account claude-second
+exit=1
+state/acct1.meta exists: no; lab tabs: []
+

@@ -1,0 +1,6 @@
+## First relaunch attempt, worker parked on the per-store Bypass Permissions dialog (scratch claude-second store has no settings.json)
+$ fm-control.sh acct1 relaunch --account default --note '...'
+error: task acct1's composer visibly holds pending text; refusing to type the /exit exit command because it would concatenate onto that text. Clear or submit the pending text, then retry 'relaunch'
+error: acct1's agent stopped but relaunch did not reach replacement launch; no agent is running, and its work plus progress note are preserved at /Users/gusfraser/.treehouse/proj-5e092b/1/proj
+exit=1
+old worker pid 43713 alive afterwards: no

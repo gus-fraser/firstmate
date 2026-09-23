@@ -1,0 +1,20 @@
+## Relaunch refusals (running claude worker pid 43713 on claude-second)
+$ fm-control.sh acct1 relaunch --account claude-third --note 'switch account'
+error: task acct1 cannot relaunch on Claude account 'claude-third', which does not resolve (claude account 'claude-third' is unknown: config/claude-accounts has no entry for it); relaunching would stop the running agent for a launch that must be refused
+exit=1
+worker pid 43713 still running: yes; meta account line: account=claude-second
+
+$ fm-control.sh acct1 relaunch --harness codex --account claude-second --note 'switch account'
+error: --account claude-second selects a Claude account and needs the claude harness, not 'codex'; relaunching would stop the running agent for a launch that must be refused
+exit=1
+worker pid 43713 still running: yes; meta account line: account=claude-second
+
+$ fm-control.sh acct1 relaunch --account Claude-Second --note 'switch account'
+error: task acct1 cannot relaunch on Claude account 'Claude-Second', which does not resolve (claude account 'Claude-Second' is not a valid name (lowercase letters, digits, and single hyphens)); relaunching would stop the running agent for a launch that must be refused
+exit=1
+worker pid 43713 still running: yes; meta account line: account=claude-second
+
+$ (claude-second directory removed) fm-control.sh acct1 relaunch --note 'keep account'
+error: task acct1 cannot relaunch on Claude account 'claude-second', which does not resolve (claude account 'claude-second' maps to '$SCRATCH/claude-second', which is not an existing directory; sign that account in under it first); relaunching would stop the running agent for a launch that must be refused
+exit=1
+worker pid 43713 still running: yes; meta account line: account=claude-second

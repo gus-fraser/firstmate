@@ -1,0 +1,16 @@
+## $ fm-control.sh acct1 relaunch --account claude-second --note 'move back onto claude-second'
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+relaunched acct1 harness=claude from=claude model=default effort=default account=claude-second backend=herdr endpoint=fm-lab-acct-select-21198-10115:w1:p2 worktree=/Users/gusfraser/.treehouse/proj-5e092b/1/proj
+exit=0
+replacement claude pid 85011: CLAUDE_CONFIG_DIR=$SCRATCH/claude-second
+meta: account=claude-second
+journal: from_account=default to_account=claude-second 
+
+## $ fm-control.sh acct1 relaunch  --note 'plain relaunch keeps the recorded account'
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+relaunched acct1 harness=claude from=claude model=default effort=default account=claude-second backend=herdr endpoint=fm-lab-acct-select-21198-10115:w1:p2 worktree=/Users/gusfraser/.treehouse/proj-5e092b/1/proj
+exit=0
+replacement claude pid 89177: CLAUDE_CONFIG_DIR=$SCRATCH/claude-second
+meta: account=claude-second
+journal: from_account=claude-second to_account=claude-second 
+

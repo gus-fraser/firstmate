@@ -1,0 +1,49 @@
+## Round-2: crew-dispatch profile account validation through the real resolver and bootstrap (commit 055fed0)
+config/claude-accounts names: claude-second claude-third 
+
+config/crew-dispatch.json: {"rules":[{"when":"claude-second work","use":{"harness":"claude","account":"claude-second"}}]}
+  $ fm-dispatch-resolve.sh (TYPESAFE_API_KEY set, curl shimmed)
+  dispatch-resolve: error (http 000 after 1000 ms: )
+  dispatch-resolve:
+    status: error
+    reason: http 000 after 1000 ms: 
+  exit=0
+  $ fm-bootstrap.sh (detect) CREW_DISPATCH lines:
+
+config/crew-dispatch.json: {"rules":[{"when":"balanced claude work","use":[{"harness":"claude","account":"claude-second"},{"harness":"claude"}]}]}
+  $ fm-dispatch-resolve.sh (TYPESAFE_API_KEY set, curl shimmed)
+  dispatch-resolve: error (http 000 after 0 ms: )
+  dispatch-resolve:
+    status: error
+    reason: http 000 after 0 ms: 
+  exit=0
+  $ fm-bootstrap.sh (detect) CREW_DISPATCH lines:
+
+config/crew-dispatch.json: {"rules":[{"when":"claude work","use":{"harness":"claude","account":"claude-fourth"}}]}
+  $ fm-dispatch-resolve.sh (TYPESAFE_API_KEY set, curl shimmed)
+  error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - claude account 'claude-fourth' is unknown: config/claude-accounts has no entry for it
+  exit=2
+  $ fm-bootstrap.sh (detect) CREW_DISPATCH lines:
+  CREW_DISPATCH: invalid config/crew-dispatch.json - claude account 'claude-fourth' is unknown: config/claude-accounts has no entry for it
+
+config/crew-dispatch.json: {"rules":[{"when":"codex work","use":{"harness":"codex","account":"claude-second"}}]}
+  $ fm-dispatch-resolve.sh (TYPESAFE_API_KEY set, curl shimmed)
+  error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - each use profile account must be a non-empty string on a claude profile
+  exit=2
+  $ fm-bootstrap.sh (detect) CREW_DISPATCH lines:
+  CREW_DISPATCH: invalid config/crew-dispatch.json - account needs harness claude: codex:claude-second
+
+config/crew-dispatch.json: {"rules":[{"when":"claude work","use":[{"harness":"claude","account":"claude-second"},{"harness":"claude","account":"claude-second"}]}]}
+  $ fm-dispatch-resolve.sh (TYPESAFE_API_KEY set, curl shimmed)
+  error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - each rule use must not contain duplicate harness, model, effort, and account profiles
+  exit=2
+  $ fm-bootstrap.sh (detect) CREW_DISPATCH lines:
+
+config/crew-dispatch.json: {"rules":[],"default":{"harness":"claude","account":""}}
+  $ fm-dispatch-resolve.sh (TYPESAFE_API_KEY set, curl shimmed)
+  error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - each default profile account must be a non-empty string on a claude profile
+  exit=2
+  $ fm-bootstrap.sh (detect) CREW_DISPATCH lines:
+  CREW_DISPATCH: invalid config/crew-dispatch.json - profile account must be a non-empty string when present
+
+curl invocations total: 2

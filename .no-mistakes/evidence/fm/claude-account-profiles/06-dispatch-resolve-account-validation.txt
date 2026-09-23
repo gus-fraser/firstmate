@@ -1,0 +1,18 @@
+## fm-dispatch-resolve.sh rule validation for profile accounts (pre-network; curl shimmed to refuse)
+config/crew-dispatch.json: {"rules":[{"when":"claude work","use":{"harness":"claude","account":"claude-third"}}]}
+error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - claude account 'claude-third' is unknown: config/claude-accounts has no entry for it
+exit=2
+
+config/crew-dispatch.json: {"rules":[{"when":"codex work","use":{"harness":"codex","account":"claude-second"}}]}
+error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - each use profile account must be a non-empty string on a claude profile
+exit=2
+
+config/crew-dispatch.json: {"rules":[{"when":"claude work","use":[{"harness":"claude","account":"claude-second"},{"harness":"claude","account":"claude-second"}]}]}
+error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - each rule use must not contain duplicate harness, model, effort, and account profiles
+exit=2
+
+config/crew-dispatch.json: {"rules":[{"when":"claude work","use":{"harness":"claude","account":""}}]}
+error: malformed rules file: $SCRATCH/home/config/crew-dispatch.json - each use profile account must be a non-empty string on a claude profile
+exit=2
+
+curl invocations: 0

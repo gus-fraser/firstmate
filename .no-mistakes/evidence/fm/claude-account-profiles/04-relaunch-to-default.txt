@@ -1,0 +1,54 @@
+## Relaunch claude-second -> default (fm-control.sh acct1 relaunch --account default)
+(scratch stores now carry settings.json {skipDangerousModePermissionPrompt:true}, as an operator-accepted store would)
+warning: $SCRATCH/home/data/acct1/launch-brief.md records no delivery contract line (scaffolded before ship briefs recorded one); launching on the explicit --mode local-only - confirm its definition of done matches
+notice: acct1 ships mode=local-only while the standing posture for proj is no-mistakes - less rigor than the captain's standing posture; proceed only on a current explicit captain instruction or an intake judgment you can state
+relaunched acct1 harness=claude from=claude model=default effort=default account=default backend=herdr endpoint=fm-lab-acct-select-21198-10115:w1:p2 worktree=/Users/gusfraser/.treehouse/proj-5e092b/1/proj
+exit=0
+
+## state/acct1.meta after relaunch
+harness=claude
+model=default
+effort=default
+(no account= line: default store)
+
+## replacement worker pid 71049 (caffeinate) env
+(no CLAUDE_CONFIG_DIR)
+
+## control-plane journal (from/to account)
+(eval):12: no matches found: $SCRATCH/home/state/acct1.relaunch*
+
+## pane viewport
+  sent before the relaunch survives there.
+
+  claude-second hit its usage limit; move to the default account
+
+  Progress note (2026-09-23T16:29:31Z)
+
+  This task was relaunched. Continue from here; the local copy and every
+  uncommitted change are exactly as the previous worker left them.
+
+  First, check your instruction inbox: list
+  $SCRATCH/home/state/acct1.inbox/*.msg, act on
+  each message in numeric order, then mv each handled file into
+  $SCRATCH/home/state/acct1.inbox/handled/. A steer
+  sent before the relaunch survives there.
+
+  claude-second hit its usage limit; move to the default account
+  ⎿  Not logged in · Please run /login
+
+✻ Cogitated for 0s · done 12:29 PM
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⚠ Transcript saving is off — inherited CLAUDE_CODE_CHILD_SESSION marker · restart with CLAUDE_CODE_FORCE_SESSION_PE…
+  ⏵⏵ bypass permissions on (shift+tab to cycle)                                             Not logged in · Run /login
+## replacement worker claude pid 70715 env
+CLAUDE_CONFIG_DIR=$SCRATCH/claude-ambient
+
+## state/acct1.control-relaunch journal (account lines)
+phase=complete
+from_harness=claude
+to_harness=claude
+from_account=claude-second
+to_account=default

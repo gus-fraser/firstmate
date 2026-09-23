@@ -1,0 +1,29 @@
+## Round-2 relaunch account moves (live lab fm-lab-acct-r2-25675-6330)
+$ fm-control.sh acct1 relaunch --account default --note claude-second hit its usage limit; move to the default account
+relaunched acct1 harness=claude from=claude model=default effort=default account=default backend=herdr endpoint=fm-lab-acct-r2-25675-6330:w3:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/1/proj
+exit=0
+meta: (no account= line: default store)
+replacement claude process env: pid 19606: CLAUDE_CONFIG_DIR=$SCRATCH/claude-ambient 
+journal: phase=complete from_account=claude-second to_account=default 
+
+$ fm-control.sh acct1 relaunch --account claude-second --note move back onto claude-second
+relaunched acct1 harness=claude from=claude model=default effort=default account=claude-second backend=herdr endpoint=fm-lab-acct-r2-25675-6330:w3:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/1/proj
+exit=0
+meta: account=claude-second
+replacement claude process env: pid 30645: CLAUDE_CONFIG_DIR=$SCRATCH/claude-second 
+journal: phase=complete from_account=default to_account=claude-second 
+
+$ fm-control.sh acct1 relaunch --note plain relaunch keeps the recorded account
+relaunched acct1 harness=claude from=claude model=default effort=default account=claude-second backend=herdr endpoint=fm-lab-acct-r2-25675-6330:w3:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/1/proj
+exit=0
+meta: account=claude-second
+replacement claude process env: pid 37511: CLAUDE_CONFIG_DIR=$SCRATCH/claude-second 
+journal: phase=complete from_account=claude-second to_account=claude-second 
+
+$ fm-control.sh acct2 relaunch --account claude-second --note move the default-store worker onto claude-second
+relaunched acct2 harness=claude from=claude model=default effort=default account=claude-second backend=herdr endpoint=fm-lab-acct-r2-25675-6330:w4:p2 worktree=/Users/gusfraser/.treehouse/proj-2b00f3/2/proj
+exit=0
+meta: account=claude-second
+replacement claude process env: pid 45177: CLAUDE_CONFIG_DIR=$SCRATCH/claude-second 
+journal: phase=complete from_account=default to_account=claude-second 
+
