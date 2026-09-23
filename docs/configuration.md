@@ -382,7 +382,7 @@ The token is the file's whitespace-trimmed content.
 Any other value, or an unreadable file, refuses every spawn from that home, whichever harness it would launch, before any endpoint, worktree, or task record exists, and names the accepted values; Firstmate never falls back to a permission posture the captain did not choose.
 `bin/fm-spawn.sh` reads the file on every spawn and relaunch, so a change takes effect at the next launch without a restart.
 The file is a captain-wide safety preference, so it is inherited into secondmate homes under the [`secondmate-provisioning`](../.agents/skills/secondmate-provisioning/SKILL.md) inherited-local-material contract; a secondmate's own Claude crewmates then launch on the same posture.
-The [Claude adapter reference](../.agents/skills/harness-adapters/references/harness/claude.md) records the verified shape of both launches and which once-per-machine dialog each one can meet.
+The [Claude adapter reference](../.agents/skills/harness-adapters/references/harness/claude.md) records the verified shape of both launches and which one-time dialog each one can meet.
 
 ## Claude accounts (config/claude-accounts)
 
@@ -399,6 +399,9 @@ A name uses lowercase letters, digits, and single hyphens, and `default` is rese
 The default account needs no entry: a worker with no account runs exactly as before, inheriting the Claude config directory Firstmate itself runs under (the `CLAUDE_CONFIG_DIR` Firstmate was started with, else Claude's own default).
 A [crew dispatch profile](#crew-dispatch-profiles-configcrew-dispatchjson) selects an account with its optional `account` field, and Firstmate passes it to `bin/fm-spawn.sh` as `--account <name>`.
 That spawn launches the worker with `CLAUDE_CONFIG_DIR` set to the account's directory in place of Firstmate's own, and pre-registers workspace trust in that account's store, so the worker uses that subscription's credentials and settings.
+Each named account's store must already be signed in and must already have accepted Bypass Permissions mode, because Claude records that acceptance per config store rather than per machine and Firstmate cannot answer the confirmation dialog.
+Accept it once by running `CLAUDE_CONFIG_DIR=<dir> claude --dangerously-skip-permissions` and confirming, or by having `skipDangerousModePermissionPrompt` set to `true` in that store's `settings.json`; otherwise the worker parks on the dialog with its selection on `No, exit`.
+A home using [`config/claude-permission-mode`](#claude-permission-mode-configclaude-permission-mode) `auto` does not meet this dialog, because it never requests bypass mode.
 The account is valid only with the canonical `claude` harness on crewmate and scout spawns; a secondmate spawn, a raw launch command, or another harness refuses it.
 An unknown name, an absent or malformed file, a duplicate entry, or a relative or missing directory refuses the spawn before any endpoint, local copy, or task record exists.
 The chosen name is recorded as `account=` in the task record, and a control-plane relaunch that stays on Claude reuses it, re-reading its directory from this file; a relaunch onto another harness drops it.
