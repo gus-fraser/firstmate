@@ -70,6 +70,9 @@
 #              plus its optional model and effort tokens) exactly as any other
 #              respawn does, while a ship or scout keeps the exact adapter
 #              already recorded for it.
+#              A recorded Claude account (docs/configuration.md "Claude
+#              accounts") is kept on a claude relaunch and dropped on a switch
+#              off claude; one that no longer resolves refuses before the stop.
 #              A prefixed raw-command basename cannot reconstruct its launch
 #              command, so relaunch requires an explicit --harness for it.
 #              --note is required for a ship or scout, whose replacement
@@ -168,6 +171,8 @@ DATA="${FM_DATA_OVERRIDE:-$FM_HOME/data}"
 . "$SCRIPT_DIR/fm-control-lib.sh"
 # shellcheck source=bin/fm-pr-lib.sh
 . "$SCRIPT_DIR/fm-pr-lib.sh"
+# shellcheck source=bin/fm-claude-accounts-lib.sh
+. "$SCRIPT_DIR/fm-claude-accounts-lib.sh"
 # shellcheck source=bin/fm-wake-lib.sh
 . "$SCRIPT_DIR/fm-wake-lib.sh"
 
@@ -844,6 +849,13 @@ resolve_relaunch_profile() {
   fi
   if [ "$TARGET_EFFORT" = ultra ]; then
     "$SCRIPT_DIR/fm-harness.sh" validate-native-effort "$TARGET_HARNESS" "$TARGET_MODEL" "$TARGET_EFFORT" || return 1
+  fi
+  # The launch owner reuses a recorded Claude account on a claude relaunch and
+  # refuses one that no longer resolves; ask the same question before the stop.
+  PRIOR_ACCOUNT=$(fm_meta_get "$META" account)
+  if [ -n "$PRIOR_ACCOUNT" ] && [ "$TARGET_HARNESS" = claude ]; then
+    fm_claude_account_resolve "${FM_CONFIG_OVERRIDE:-$FM_HOME/config}" "$PRIOR_ACCOUNT" \
+      || die "task $ID runs on Claude account '$PRIOR_ACCOUNT', which no longer resolves ($FM_CLAUDE_ACCOUNT_ERROR); relaunching would stop the running agent for a launch that must be refused"
   fi
 }
 

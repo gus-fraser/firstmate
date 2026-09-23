@@ -662,6 +662,54 @@ test_harness_switch_does_not_carry_the_old_profile_axes() {
   pass "fm-control relaunch: a harness switch resets model and effort unless they are named too"
 }
 
+# A task dispatched on a named Claude account (docs/configuration.md "Claude
+# accounts") keeps that subscription across a same-harness relaunch, and a
+# switch off claude drops the claude-only axis like model and effort.
+test_relaunch_reuses_the_recorded_claude_account() {
+  local dir out rc
+  dir=$(new_case account rl50)
+  add_ship_task "$dir" rl50 claude
+  echo "account=claude-second" >> "$dir/home/state/rl50.meta"
+  mkdir -p "$dir/home/config" "$dir/claude-second"
+  printf 'claude-second %s\n' "$dir/claude-second" > "$dir/home/config/claude-accounts"
+  out=$(run_control "$dir" rl50 relaunch --note "same account"); rc=$?
+  expect_code 0 "$rc" "a same-harness relaunch on a named account should succeed"$'\n'"$out"
+  assert_grep "CLAUDE_CONFIG_DIR='$dir/claude-second'" "$dir/fake/literal" \
+    "the replacement must launch on the recorded account's config directory"
+  [ "$(grep -c '^account=' "$dir/home/state/rl50.meta")" = 1 ] \
+    || fail "the republished record must carry the account exactly once"
+  [ "$(meta_field "$dir" rl50 account)" = claude-second ] || fail "the account must survive the relaunch"
+  assert_grep "\"$dir/wt\"" "$dir/claude-second/.claude.json" \
+    "the replacement's workspace trust must land in the recorded account's store"
+
+  printf 'codex' > "$dir/fake/becomes"
+  out=$(run_control "$dir" rl50 relaunch --harness codex --note "switching runtime"); rc=$?
+  expect_code 0 "$rc" "a harness switch off claude should succeed"$'\n'"$out"
+  assert_no_grep 'account=' "$dir/home/state/rl50.meta" "a switch off claude must drop the claude account"
+  pass "fm-control relaunch: a claude relaunch keeps its recorded account, and a switch off claude drops it"
+}
+
+test_relaunch_refuses_an_account_that_no_longer_resolves() {
+  local dir out rc
+  dir=$(new_case account-gone rl51)
+  add_ship_task "$dir" rl51 claude
+  echo "account=claude-second" >> "$dir/home/state/rl51.meta"
+  printf 'zsh' > "$dir/fake/command"
+  out=$(run_spawn "$dir" rl51 --relaunch); rc=$?
+  expect_code 1 "$rc" "a relaunch whose recorded account no longer resolves must refuse"$'\n'"$out"
+  assert_contains "$out" "claude account 'claude-second' is unknown" "the refusal must name the account"
+  assert_no_grep "encode launch-brief" "$dir/fake/literal" "nothing may launch on another account"
+  printf 'claude' > "$dir/fake/command"
+  out=$(run_control "$dir" rl51 relaunch --note "account gone"); rc=$?
+  expect_code 1 "$rc" "fm-control must refuse an unresolvable account before stopping the agent"$'\n'"$out"
+  assert_contains "$out" "no longer resolves" "the pre-stop refusal must name the account problem"
+  assert_no_grep "/exit" "$dir/fake/literal" "the running agent must not be stopped for a launch that must be refused"
+  out=$(run_spawn "$dir" rl51 --relaunch --account claude-second); rc=$?
+  expect_code 1 "$rc" "--relaunch must not accept a new account"
+  assert_contains "$out" "reuses the task's recorded Claude account" "the refusal must name the recorded axis"
+  pass "fm-spawn --relaunch: an unresolvable recorded account refuses rather than falling back to the default store"
+}
+
 test_harness_switch_resolves_a_prefixed_recorded_harness() {
   local dir out rc auth
   dir=$(new_case prefixcontrol rl32)
@@ -2264,6 +2312,8 @@ test_relaunch_requires_a_note_for_a_ship_task
 test_harness_switch_moves_the_record_and_clears_prior_wiring
 test_harness_switch_does_not_carry_the_old_profile_axes
 test_harness_switch_resolves_a_prefixed_recorded_harness
+test_relaunch_reuses_the_recorded_claude_account
+test_relaunch_refuses_an_account_that_no_longer_resolves
 test_prefixed_recorded_harness_requires_explicit_replacement
 test_same_harness_relaunch_keeps_the_profile_axes
 test_native_ultra_relaunch_preserves_profile_and_rejects_before_stop

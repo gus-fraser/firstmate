@@ -384,6 +384,27 @@ Any other value, or an unreadable file, refuses every spawn from that home, whic
 The file is a captain-wide safety preference, so it is inherited into secondmate homes under the [`secondmate-provisioning`](../.agents/skills/secondmate-provisioning/SKILL.md) inherited-local-material contract; a secondmate's own Claude crewmates then launch on the same posture.
 The [Claude adapter reference](../.agents/skills/harness-adapters/references/harness/claude.md) records the verified shape of both launches and which once-per-machine dialog each one can meet.
 
+## Claude accounts (config/claude-accounts)
+
+The optional local, gitignored `config/claude-accounts` names the Claude subscriptions a crewmate or scout may run on, so one home can route some Claude work to a second account signed in under its own Claude config directory.
+This section is the single owner of the file and of the account axis; [`bin/fm-claude-accounts-lib.sh`](../bin/fm-claude-accounts-lib.sh) owns the exact parse and refusal wording.
+Each non-blank line that does not start with `#` holds one account name, whitespace, and the absolute directory that account is signed in under:
+
+```text
+# <name> <absolute Claude config directory>
+claude-second /Users/example/.claude-second
+```
+
+A name uses lowercase letters, digits, and single hyphens; the directory is the rest of the line, may contain spaces, and is never `~`- or variable-expanded.
+The default account needs no entry: a worker with no account runs exactly as before, inheriting the Claude config directory Firstmate itself runs under (the `CLAUDE_CONFIG_DIR` Firstmate was started with, else Claude's own default).
+A [crew dispatch profile](#crew-dispatch-profiles-configcrew-dispatchjson) selects an account with its optional `account` field, and Firstmate passes it to `bin/fm-spawn.sh` as `--account <name>`.
+That spawn launches the worker with `CLAUDE_CONFIG_DIR` set to the account's directory in place of Firstmate's own, and pre-registers workspace trust in that account's store, so the worker uses that subscription's credentials and settings.
+The account is valid only with the canonical `claude` harness on crewmate and scout spawns; a secondmate spawn, a raw launch command, or another harness refuses it.
+An unknown name, an absent or malformed file, a duplicate entry, or a relative or missing directory refuses the spawn before any endpoint, local copy, or task record exists.
+The chosen name is recorded as `account=` in the task record, and a control-plane relaunch that stays on Claude reuses it, re-reading its directory from this file; a relaunch onto another harness drops it.
+Quota evidence for an account comes only from a quota-axi row whose `accountKey` equals the account name; the [account-matching contract](../.agents/skills/quota-array-dispatch/SKILL.md#1-eligibility) owns that binding.
+The file is inherited into secondmate homes under the [`secondmate-provisioning`](../.agents/skills/secondmate-provisioning/SKILL.md) inherited-local-material contract, because the inherited dispatch profiles name its accounts; its directories are machine paths, so a remote secondmate whose host lacks one refuses that account rather than falling back to another.
+
 ## Lavish server address (config/lavish-axi-host)
 
 The optional local, gitignored `config/lavish-axi-host` contains one non-empty address without whitespace for the per-machine Lavish server.
@@ -458,7 +479,7 @@ Every claude launch's inline `--settings` JSON also carries `"attribution":{"com
 ## Crew dispatch profiles (config/crew-dispatch.json)
 
 `config/crew-dispatch.json` is an optional local, gitignored file containing natural-language rules that firstmate reads before dispatching a crewmate or scout.
-The shell scripts do not match those rules; firstmate chooses the best matching rule with judgment, resolves its profile object or array under the operating contract in `AGENTS.md` section 4 and `quota-array-dispatch`, and passes only concrete `--harness`, `--model`, and `--effort` flags to `fm-spawn.sh`.
+The shell scripts do not match those rules; firstmate chooses the best matching rule with judgment, resolves its profile object or array under the operating contract in `AGENTS.md` section 4 and `quota-array-dispatch`, and passes only concrete `--harness`, `--model`, `--effort`, and `--account` flags to `fm-spawn.sh`.
 When the file exists, `fm-spawn.sh` enforces that contract by refusing crewmate and scout spawns that lack an explicit harness (`--harness`, a positional adapter, or a raw launch command).
 Batch spawns satisfy the same requirement with a shared `--harness`.
 Secondmate spawns are exempt and still resolve through `config/secondmate-harness` and its optional model and effort tokens.
@@ -473,7 +494,7 @@ This section is the single owner of the canonical schema and its per-field seman
       "approval": "captain",
       "floor": { "scope": "<quota-axi scope>", "min_percent": 20, "provider": "<quota-axi provider>" },
       "use": [
-        { "harness": "<adapter>", "model": "<optional model>", "effort": "<low|medium|high|xhigh|max|ultra, optional>", "provider": "<optional quota-axi provider>", "floor": { "scope": "<quota-axi scope>", "min_percent": 50 } }
+        { "harness": "<adapter>", "model": "<optional model>", "effort": "<low|medium|high|xhigh|max|ultra, optional>", "account": "<optional config/claude-accounts name, claude only>", "provider": "<optional quota-axi provider>", "floor": { "scope": "<quota-axi scope>", "min_percent": 50 } }
       ],
       "why": "<optional rationale that helps firstmate choose>"
     }
@@ -488,6 +509,7 @@ Per rule, `when` and `use` are required; the top-level `rules` array itself may 
 Both `use` and the optional top-level `default` accept either one profile object or a non-empty array of profile objects.
 The single-object form stays fully backward-compatible, and every profile needs `harness`.
 Profile `model` and `effort` fields and rule `why` are optional.
+A profile `account` optionally names a [Claude account](#claude-accounts-configclaude-accounts) and is valid only with `"harness": "claude"`; two Claude profiles that differ only in account are distinct candidates.
 Rule `approval` and `floor`, and profile `provider` and `floor` are optional declarations that only [typed dispatch resolution](#typed-dispatch-resolution-env-typesafe_api_key) applies in code; without that opt-in they are inert, and firstmate's own intake reads them as ordinary hints.
 The resolver supplies the fixed neutral Choice option `No listed rule applies to this task.` for work that matches no listed rule.
 `approval` accepts only `"captain"` and means a task the rule matches is never dispatched from the tool's answer alone.
@@ -513,7 +535,7 @@ Bootstrap reports unsupported harness/model/effort combinations as a `CREW_DISPA
 See [`docs/examples/crew-dispatch.json`](examples/crew-dispatch.json) for a starting point to copy into local `config/crew-dispatch.json`; its Pi default declares the `claude` provider required for typed resolution of that Anthropic model.
 When the file exists, bootstrap validates it with `jq`.
 Valid files stay silent by default; with `FM_BOOTSTRAP_VERBOSE_FACTS=1`, bootstrap emits `BOOTSTRAP_INFO: crew dispatch active config/crew-dispatch.json`, one `BOOTSTRAP_INFO:` fact per rule, and one fact for the optional default profile set.
-Malformed JSON, malformed rules, an empty or malformed profile array, an unverified harness, or an effort value unsupported by that harness is reported as `CREW_DISPATCH: invalid config/crew-dispatch.json - ...`.
+Malformed JSON, malformed rules, an empty or malformed profile array, an unverified harness, an effort value unsupported by that harness, or a profile `account` on a non-Claude harness or one that does not resolve through `config/claude-accounts` is reported as `CREW_DISPATCH: invalid config/crew-dispatch.json - ...`.
 While typed resolution is active, malformed `approval`, `floor`, and present `provider` declarations receive the same diagnostic; without the key those inert declarations preserve the pre-existing bootstrap behavior.
 Missing `jq` is reported through the normal `MISSING: jq` install-consent flow.
 While the file remains present, no crewmate or scout spawn may proceed without an explicit resolved harness; malformed configuration must be reported and corrected rather than selected around.
@@ -540,7 +562,7 @@ An expanded provider with no matching account row leaves the candidate eligible 
 Known applicable rows from a provider with partial quota semantics remain rankable; rows whose own status is not known remain unrankable.
 Any applicable `exhausted_now` row or known zero bound makes that candidate ineligible, and a known profile-floor shortfall does the same before unrelated quota uncertainty is considered.
 Missing or nonnumeric `spendPriority` evidence is never ranked, and every candidate is printed beside its evidence or the reason it was not rankable, including on ambiguous and approval-gated outcomes that emit no profile.
-On the opted-in path, duplicate concrete profiles with the same harness, model, and effort inside one rule or the default array are configuration errors rather than ties.
+On the opted-in path, duplicate concrete profiles with the same harness, model, effort, and account inside one rule or the default array are configuration errors rather than ties, and a profile `account` that does not resolve is an exit 2 configuration error.
 The result is one of `clear` (a `profile:` line ready for `fm-spawn.sh`), `ambiguous` (confidence below the floor), `escalate` (an approval-gated rule, unverifiable rule floor, nothing rankable, or a genuine tie), or `error` (API, network, malformed response metadata, rendering, or quota-axi failure), and every one of them exits 0.
 Response probabilities must contain exactly every offered choice, use numeric values from 0 through 1, and sum to approximately 1 within 0.01.
 Only a usage or configuration error exits 2: an unreadable brief, an existing but unreadable or malformed canonical rules file, or missing `jq`, each reported and never selected around.
